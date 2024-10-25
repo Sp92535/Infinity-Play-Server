@@ -11,7 +11,7 @@ from .routes.game_routes import game_bp
 app = Flask(__name__)
 load_dotenv()
 
-app.config['DEBUG'] = os.getenv('DEBUG', 'False')
+app.config['DEBUG'] = os.getenv('DEBUG') =='True'
 app.config['PORT'] = int(os.getenv('FLASK_APP_PORT',80))
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
