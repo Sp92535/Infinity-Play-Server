@@ -82,16 +82,31 @@ class AdminView:
             print(e)
             return jsonify({"success": False, "error": "Internal Server Error"}), 500
 
-
     @staticmethod
-    def login(request):
+    def __get_jwt_expiration():
+        exp = os.getenv('JWT_EXPIRATION')
+        num = int(exp[:-1])
+        unit = exp[-1]
+
+        if unit=='m':
+            return timedelta(minutes=num)
+        elif unit == 'h':
+            return timedelta(hours=num)
+        elif unit == 's':
+            return timedelta(seconds=num)
+        elif unit == 'd':
+            return timedelta(days=num)
+        else:
+            raise ValueError("Invalid time unit. Use 'm' for minutes, 'h' for hours, or 's' for seconds.")
+
+    def login(self,request):
         try:
             req_data = request.get_json()
             username = req_data.get('username')
             password = req_data.get('password')
 
             if username==os.getenv('SUPER_USERNAME') and password==os.getenv('SUPER_PASSWORD'):
-                access_token = create_access_token(identity=username+"NEGRO",expires_delta=timedelta(hours=2))
+                access_token = create_access_token(identity=username+"NEGRO",expires_delta=self.__get_jwt_expiration())
                 return jsonify({"success": True, "access_token": access_token, "super_access":True}), 200
 
             admin = Admin.objects(username=username).first()
@@ -102,7 +117,7 @@ class AdminView:
             if not bcrypt.checkpw(password.encode('utf-8'), admin.password.encode('utf-8')):
                 raise Unauthorized("Wrong Username or Password")
 
-            access_token = create_access_token(identity=username,expires_delta=timedelta(hours=2))
+            access_token = create_access_token(identity=username,expires_delta=self.__get_jwt_expiration())
 
             return jsonify({"success": True, "access_token": access_token}), 200
 

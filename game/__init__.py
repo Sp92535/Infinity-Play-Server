@@ -5,6 +5,7 @@ from mongoengine import connect
 from flask_cors import CORS
 from dotenv import load_dotenv
 from .routes.admin_routes import admin_bp
+from .routes.conn_test_routes import conn_test_bp
 from .routes.game_card_routes import game_card_bp
 from .routes.game_routes import game_bp
 
@@ -30,3 +31,4 @@ jwt = JWTManager(app)
 app.register_blueprint(game_card_bp, url_prefix = '/api')
 app.register_blueprint(game_bp, url_prefix = '/api')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
+app.register_blueprint(conn_test_bp, url_prefix='/')
