@@ -1,4 +1,4 @@
-from . import get_bucket,base64,Game,Q,jsonify
+from . import get_bucket,base64,Game,Q,jsonify,json,Response
 
 class GameCardView:
 
@@ -19,11 +19,9 @@ class GameCardView:
         return f'data:image/jpeg;base64,{image_base64}'
 
     def __get_images_with_name(self,games):
-        games_with_images = []
         for game in games:
             image_url = self.__get_image_url(game.image)
-            games_with_images.append({"name": game.gameName,"img": image_url})
-        return games_with_images
+            yield json.dumps({"name": game.gameName,"img": image_url})
 
     def __get_games(self, sort_by='-releasedOn', category=None):
         try:
@@ -32,9 +30,18 @@ class GameCardView:
             else:
                 games = Game.objects.order_by(sort_by).limit(10).only('gameName', 'image')
 
-            games_with_images = self.__get_images_with_name(games)
+            def generate():
+                yield '{"success": true, "games": ['
+                first = True
+                for game_data in self.__get_images_with_name(games):
+                    if not first:
+                        yield ','
+                    else:
+                        first = False
+                    yield game_data
+                yield ']}'
 
-            return jsonify({"success": True, "games": games_with_images}), 200
+            return Response(generate(), content_type='application/json')
 
         except Exception as e:
             print(str(e))
@@ -57,9 +64,18 @@ class GameCardView:
             total = games.count()
             games = games.skip(offset).limit(page_limit)
 
-            games_with_images = self.__get_images_with_name(games)
+            def generate():
+                yield '{"success": true, "games": ['
+                first = True
+                for game_data in self.__get_images_with_name(games):
+                    if not first:
+                        yield ','
+                    else:
+                        first = False
+                    yield game_data
+                yield f'],"total": {total}}}'
 
-            return jsonify({"success": True, "games": games_with_images, "total": total}), 200
+            return Response(generate(), content_type='application/json')
 
         except Exception as e:
             print(str(e))
@@ -81,9 +97,19 @@ class GameCardView:
 
             total = games.count()
             games = games.skip(offset).limit(page_limit)
-            games_with_images = self.__get_images_with_name(games)
 
-            return jsonify({"success": True, "games": games_with_images, "total": total}), 200
+            def generate():
+                yield '{"success": true, "games": ['
+                first = True
+                for game_data in self.__get_images_with_name(games):
+                    if not first:
+                        yield ','
+                    else:
+                        first = False
+                    yield game_data
+                yield f'],"total": {total}}}'
+
+            return Response(generate(), content_type='application/json')
 
         except Exception as e:
             print(str(e))
