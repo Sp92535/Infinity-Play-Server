@@ -1,0 +1,1 @@
+web: gunicorn --bind :$FLASK_APP_PORT run:app
